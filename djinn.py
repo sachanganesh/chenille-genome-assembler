@@ -1,5 +1,6 @@
 import argparse
 from random import randint
+from graphviz import Digraph
 
 
 def get_reads(seq, read_len, num_reads):
@@ -43,6 +44,38 @@ def get_kmers(k, reads, read_len):
 	return kmer_set
 
 
+def find_next_kmers(kmer, kmer_set):
+	followers = []
+
+	for other in kmer_set:
+		if kmer != other and kmer[1:] == other[:-1]:
+			followers.append(other)
+
+	return followers
+
+
+def build_debruijn(kmer_set):
+	graph = {}
+
+	for kmer in kmer_set:
+		graph[kmer] = find_next_kmers(kmer, kmer_set)
+
+	return graph
+
+
+def visualize_graph(graph):
+	dot = Digraph(comment="de Bruijn graph for assembly")
+
+	for kmer in graph:
+		dot.node(kmer, kmer)
+
+		for follower in graph[kmer]:
+			dot.edge(kmer, follower)
+
+	dot.attr(rankdir="LR")
+	dot.render("debruijn.gv", view=True)
+
+
 def prepare_arguments():
 	parser = argparse.ArgumentParser(description="Djinn: Naive de novo genome assembler")
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
@@ -69,6 +102,9 @@ def main():
 	for el in kmers:
 		print(el)
 
+	debruijn = build_debruijn(kmers)
+
+	visualize_graph(debruijn)
 
 if __name__ == "__main__":
 	main()
