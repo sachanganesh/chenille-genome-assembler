@@ -106,13 +106,16 @@ def simplify_degruijn(graph, reverse_graph):
 	reverse_graph, _ = sieve_graph(reverse_graph)
 
 	kmers = list(graph.keys())
+	change = 1
 
-	while len(kmers) > 1:
+	while change:
+		graph_size = len(graph.keys())
+
 		for kmer in kmers:
 			word = kmer
 
 			while word is not None and word in graph:
-				if len(graph[word]) == 1 and len(reverse_graph[list(graph[word])[0]]):
+				if len(graph[word]) == 1 and len(reverse_graph[list(graph[word])[0]]) == 1:
 					follower = list(graph[word])[0]
 
 					s = SequenceMatcher(None, word, follower)
@@ -151,7 +154,7 @@ def simplify_degruijn(graph, reverse_graph):
 				else:
 					word = None
 
-		kmers = list(graph.keys())
+		change = graph_size - len(graph.keys())
 
 	return graph, reverse_graph
 
