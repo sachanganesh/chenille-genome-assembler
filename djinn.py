@@ -1,5 +1,6 @@
 import argparse
 from random import randint
+from difflib import SequenceMatcher
 from graphviz import Digraph
 
 
@@ -56,20 +57,103 @@ def find_next_kmers(kmer, kmer_set):
 
 def build_debruijn(kmer_set):
 	graph = {}
+	reverse_graph = {}
 
 	for kmer in kmer_set:
-		graph[kmer] = find_next_kmers(kmer, kmer_set)
+		followers = find_next_kmers(kmer, kmer_set)
+		graph[kmer] = set(followers)
 
-	return graph
+		for follower in followers:
+			if follower in reverse_graph:
+				reverse_graph[follower].add(kmer)
+			else:
+				reverse_graph[follower] = set([kmer])
+
+	for key in graph:
+		if key not in reverse_graph:
+			reverse_graph[key] = set()
+
+	return graph, reverse_graph
 
 
-# def simplify_degruijn(debruijn):
-# 	graph = {}
-#
-# 	for kmer in debruijn:
-# 		if len(debruijn[kmer]) == 1:
-# 			new_word = kmer + debruijn[kmer][-1]
-# 			graph[new_word]
+def get_graph_ends(graph, reverse_graph):
+	heads = []
+	tails = []
+
+	for key in graph:
+		if len(reverse_graph[key]) == 0:
+			heads.append(key)
+
+	for key in reverse_graph:
+		if len(graph[key]) == 0:
+			tails.append(key)
+
+	return heads, tails
+
+
+def sieve_graph(graph):
+	sieved_graph = {}
+
+	for key in graph:
+		if key in set.union(*graph.values()) or len(graph[key]) != 0:
+			sieved_graph[key] = graph[key]
+
+	return sieved_graph, graph
+
+
+def simplify_degruijn(graph, reverse_graph):
+	graph, _ = sieve_graph(graph)
+	reverse_graph, _ = sieve_graph(reverse_graph)
+
+	kmers = list(graph.keys())
+
+	while len(kmers) > 1:
+		for kmer in kmers:
+			word = kmer
+
+			while word is not None and word in graph:
+				if len(graph[word]) == 1 and len(reverse_graph[list(graph[word])[0]]):
+					follower = list(graph[word])[0]
+
+					s = SequenceMatcher(None, word, follower)
+					alpha, beta, overlap_len = s.find_longest_match(0, len(word), 0, len(follower))
+					new_word = word[:alpha] + word[alpha : alpha + overlap_len] + follower[beta + overlap_len:]
+
+					# set new word in graph with appropriate chain
+					graph[new_word] = graph[follower]
+
+					# set new word in reverse_graph with appropriate chain
+					reverse_graph[new_word] = reverse_graph[word]
+
+					# get predecessors of word from reverse_graph
+					word_predecessors = list(reverse_graph[word])
+					follower_antecessors = list(graph[follower])
+
+					# for each predecessor in graph, link new word in with existing chain
+					for predecessor in word_predecessors:
+						graph[predecessor].remove(word)
+						graph[predecessor].add(new_word)
+
+					# for each antecessor in reverse_graph, link new word in with existing chain
+					for antecessor in follower_antecessors:
+						reverse_graph[antecessor].remove(follower)
+						reverse_graph[antecessor].add(new_word)
+
+					# empty original graph nodes
+					graph.pop(word, 0)
+					graph.pop(follower, 0)
+
+					# empty original reverse_graph nodes
+					reverse_graph.pop(word, 0)
+					reverse_graph.pop(follower, 0)
+
+					word = new_word
+				else:
+					word = None
+
+		kmers = list(graph.keys())
+
+	return graph, reverse_graph
 
 
 def visualize_graph(graph):
@@ -106,14 +190,16 @@ def main():
 
 	kmers = sorted(get_kmers(k, reads, read_len))
 
-	print(sample)
-	print("Coverage:", coverage)
-	for el in kmers:
-		print(el)
+	debruijn, rev_debruijn = build_debruijn(kmers)
+	simp_debruijn, simp_rev_debruijn = simplify_degruijn(debruijn, rev_debruijn)
 
-	debruijn = build_debruijn(kmers)
+	print("Sequence:", sample)
+	print("\nCoverage:", coverage)
+	print("Assembled Contigs:")
+	for key in simp_debruijn.keys():
+		print("\t%s" % key)
 
-	visualize_graph(debruijn)
+	visualize_graph(simp_debruijn)
 
 if __name__ == "__main__":
 	main()
