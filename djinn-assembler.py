@@ -160,15 +160,20 @@ def simplify_debruijn(graph, reverse_graph):
 	return graph, reverse_graph
 
 
-def visualize_graph(*graphs):
+def visualize_graph(graphs, labels):
 	dot = Digraph(comment="de Bruijn graph for assembly")
 
-	for graph in graphs:
-		for kmer in graph:
-			dot.node(kmer, kmer)
+	for label, graph in zip(labels, graphs):
+		name = "cluster_" + label
 
-			for follower in graph[kmer]:
-				dot.edge(kmer, follower)
+		with dot.subgraph(name=name) as c:
+			c.attr(label=label)
+
+			for kmer in graph:
+				c.node(kmer, kmer)
+
+				for follower in graph[kmer]:
+					c.edge(kmer, follower)
 
 	dot.attr(rankdir="LR")
 	dot.render("assembly.gv", view=True)
@@ -204,7 +209,7 @@ def main():
 	for key in simp_debruijn.keys():
 		print("\t%s" % key)
 
-	visualize_graph(debruijn, simp_debruijn)
+	visualize_graph([debruijn, simp_debruijn], ["plain_de-debruijn", "assembled"])
 
 if __name__ == "__main__":
 	main()
