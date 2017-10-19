@@ -1,4 +1,5 @@
 import argparse
+import copy
 from random import randint
 from difflib import SequenceMatcher
 from graphviz import Digraph
@@ -101,7 +102,7 @@ def sieve_graph(graph):
 	return sieved_graph, graph
 
 
-def simplify_degruijn(graph, reverse_graph):
+def simplify_debruijn(graph, reverse_graph):
 	graph, _ = sieve_graph(graph)
 	reverse_graph, _ = sieve_graph(reverse_graph)
 
@@ -159,17 +160,18 @@ def simplify_degruijn(graph, reverse_graph):
 	return graph, reverse_graph
 
 
-def visualize_graph(graph):
+def visualize_graph(*graphs):
 	dot = Digraph(comment="de Bruijn graph for assembly")
 
-	for kmer in graph:
-		dot.node(kmer, kmer)
+	for graph in graphs:
+		for kmer in graph:
+			dot.node(kmer, kmer)
 
-		for follower in graph[kmer]:
-			dot.edge(kmer, follower)
+			for follower in graph[kmer]:
+				dot.edge(kmer, follower)
 
 	dot.attr(rankdir="LR")
-	dot.render("debruijn.gv", view=True)
+	dot.render("assembly.gv", view=True)
 
 
 def prepare_arguments():
@@ -194,7 +196,7 @@ def main():
 	kmers = sorted(get_kmers(k, reads, read_len))
 
 	debruijn, rev_debruijn = build_debruijn(kmers)
-	simp_debruijn, simp_rev_debruijn = simplify_degruijn(debruijn, rev_debruijn)
+	simp_debruijn, simp_rev_debruijn = simplify_debruijn(copy.deepcopy(debruijn), copy.deepcopy(rev_debruijn))
 
 	print("Sequence:", sample)
 	print("\nCoverage:", coverage)
@@ -202,7 +204,7 @@ def main():
 	for key in simp_debruijn.keys():
 		print("\t%s" % key)
 
-	visualize_graph(simp_debruijn)
+	visualize_graph(debruijn, simp_debruijn)
 
 if __name__ == "__main__":
 	main()

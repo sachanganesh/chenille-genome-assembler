@@ -1,5 +1,0 @@
-// de Bruijn graph for assembly
-digraph {
-	ATGGAAGTCGCGGAATC [label=ATGGAAGTCGCGGAATC]
-	rankdir=LR
-}
