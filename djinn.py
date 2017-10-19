@@ -63,6 +63,15 @@ def build_debruijn(kmer_set):
 	return graph
 
 
+# def simplify_degruijn(debruijn):
+# 	graph = {}
+#
+# 	for kmer in debruijn:
+# 		if len(debruijn[kmer]) == 1:
+# 			new_word = kmer + debruijn[kmer][-1]
+# 			graph[new_word]
+
+
 def visualize_graph(graph):
 	dot = Digraph(comment="de Bruijn graph for assembly")
 
