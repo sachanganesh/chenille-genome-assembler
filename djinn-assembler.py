@@ -192,13 +192,14 @@ def prepare_arguments():
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
 	parser.add_argument("num_reads", metavar="N", type=int, help="number of reads")
 	parser.add_argument("k", metavar="k", type=int, default=4, help="kmer length")
+	parser.add_argument("--display", action="store_true", help="display pictoral results")
 
 	args = parser.parse_args()
-	return args.read_len, args.num_reads, args.k
+	return args.read_len, args.num_reads, args.k, args.display
 
 
 def main():
-	read_len, num_reads, k = prepare_arguments()
+	read_len, num_reads, k, display = prepare_arguments()
 
 	sample = "ATGGAAGTCGCGGAATC"
 
@@ -213,14 +214,15 @@ def main():
 
 	print("Sequence:", sample)
 	print("\nCoverage:", coverage)
-	print("Original Contigs:")
+	print("\nOriginal Contigs:")
 	for key in debruijn.keys():
 		print("\t%s" % key)
-	print("Assembled Contigs:")
+	print("\nAssembled Contigs:")
 	for key in simp_debruijn.keys():
 		print("\t%s" % key)
 
-	visualize_graph([debruijn, simp_debruijn], ["plain_de-debruijn", "assembled"])
+	if display:
+		visualize_graph([debruijn, simp_debruijn], ["plain_de-debruijn", "assembled"])
 
 if __name__ == "__main__":
 	main()
