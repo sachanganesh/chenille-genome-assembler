@@ -195,7 +195,7 @@ def visualize_graph(graphs, labels):
 	dot.render("assembly.gv", view=True)
 
 
-def prepare_arguments():
+def parse_arguments():
 	parser = argparse.ArgumentParser(description="Arachne: Naive de novo genome assembler")
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
 	parser.add_argument("num_reads", metavar="N", type=int, help="number of reads")
@@ -207,7 +207,7 @@ def prepare_arguments():
 
 
 def main():
-	args = prepare_arguments()
+	args = parse_arguments()
 
 	sample = "ATGGAAGTCGCGGAATC"
 
