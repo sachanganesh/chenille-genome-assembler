@@ -188,11 +188,11 @@ def visualize_graph(graphs, labels):
 
 
 def prepare_arguments():
-	parser = argparse.ArgumentParser(description="Djinn: Naive de novo genome assembler")
+	parser = argparse.ArgumentParser(description="Arachne: Naive de novo genome assembler")
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
 	parser.add_argument("num_reads", metavar="N", type=int, help="number of reads")
 	parser.add_argument("k", metavar="k", type=int, default=4, help="kmer length")
-	parser.add_argument("--display", action="store_true", help="display pictoral results")
+	parser.add_argument("-d", "--display", action="store_true", help="display pictoral results")
 
 	args = parser.parse_args()
 	return args
