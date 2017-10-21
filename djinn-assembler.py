@@ -195,19 +195,19 @@ def prepare_arguments():
 	parser.add_argument("--display", action="store_true", help="display pictoral results")
 
 	args = parser.parse_args()
-	return args.read_len, args.num_reads, args.k, args.display
+	return args
 
 
 def main():
-	read_len, num_reads, k, display = prepare_arguments()
+	args = prepare_arguments()
 
 	sample = "ATGGAAGTCGCGGAATC"
 
-	reads = get_reads(sample, read_len, num_reads)
+	reads = get_reads(sample, args.read_len, args.num_reads)
 
-	coverage = get_coverage(len(sample), reads, num_reads)
+	coverage = get_coverage(len(sample), reads, args.num_reads)
 
-	kmers = sorted(get_kmers(k, reads, read_len))
+	kmers = sorted(get_kmers(args.k, reads, args.read_len))
 
 	debruijn, rev_debruijn = build_debruijn(kmers)
 	simp_debruijn, simp_rev_debruijn = simplify_debruijn(copy.deepcopy(debruijn), copy.deepcopy(rev_debruijn))
@@ -221,8 +221,8 @@ def main():
 	for key in simp_debruijn.keys():
 		print("\t%s" % key)
 
-	if display:
-		visualize_graph([debruijn, simp_debruijn], ["plain_de-debruijn", "assembled"])
+	if args.display:
+		visualize_graph([debruijn, simp_debruijn], ["plain_de-debruijn", "assembled_contigs"])
 
 if __name__ == "__main__":
 	main()
