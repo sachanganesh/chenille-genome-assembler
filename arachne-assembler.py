@@ -188,11 +188,16 @@ def visualize_graph(graphs, labels):
 			c.attr("node", shape="box")
 
 			for kmer in graph:
-				node_label = "{kmer}_{enum}".format(kmer=kmer, enum=enum)
+				node_label = kmer
+				for i in range(enum):
+					node_label += "_"
 				c.node(node_label, node_label)
 
 				for follower in graph[kmer]:
-					c.edge(node_label, "{kmer}_{enum}".format(kmer=follower, enum=enum))
+					follower_label = follower
+					for i in range(enum):
+						follower_label += "_"
+					c.edge(node_label, follower_label)
 
 	dot.attr(rankdir="LR")
 	dot.render("assembly.gv", view=True)
