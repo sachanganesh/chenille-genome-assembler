@@ -1,6 +1,7 @@
 import argparse
 import copy
 from random import randint
+from Bio import Seq, SeqIO, SeqRecord
 from difflib import SequenceMatcher
 from graphviz import Digraph
 
@@ -15,7 +16,10 @@ def get_reads(seq, read_len, num_reads):
 
 
 def fragment_read(seq, frag_len):
-	ind = randint(0, len(seq) - 1)
+	ind = randint(-frag_len / 2, len(seq) - 1)
+	if (ind < 0):
+		frag_len = frag_len + ind
+		ind = 0
 
 	if ind + frag_len >= len(seq):
 		return seq[ind:]
@@ -163,17 +167,21 @@ def simplify_debruijn(graph, reverse_graph):
 def visualize_graph(graphs, labels):
 	dot = Digraph(comment="de Bruijn graph for assembly")
 
-	for label, graph in zip(labels, graphs):
+	for enum, pair in enumerate(zip(labels, graphs)):
+		label = pair[0]
+		graph = pair[1]
 		name = "cluster_" + label
 
 		with dot.subgraph(name=name) as c:
 			c.attr(label=label)
+			c.attr("node", shape="box")
 
 			for kmer in graph:
-				c.node(kmer, kmer)
+				node_label = "{kmer}_{enum}".format(kmer=kmer, enum=enum)
+				c.node(node_label, node_label)
 
 				for follower in graph[kmer]:
-					c.edge(kmer, follower)
+					c.edge(node_label, "{kmer}_{enum}".format(kmer=follower, enum=enum))
 
 	dot.attr(rankdir="LR")
 	dot.render("assembly.gv", view=True)
@@ -205,6 +213,9 @@ def main():
 
 	print("Sequence:", sample)
 	print("\nCoverage:", coverage)
+	print("Original Contigs:")
+	for key in debruijn.keys():
+		print("\t%s" % key)
 	print("Assembled Contigs:")
 	for key in simp_debruijn.keys():
 		print("\t%s" % key)
