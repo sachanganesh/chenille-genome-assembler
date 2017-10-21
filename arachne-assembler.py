@@ -1,3 +1,11 @@
+"""
+	Sachandhan Ganesh
+	Created On 10.18.2017
+
+	Simple de novo genome assembler to test naive de Bruijn graph manipulation and the implications of
+	read lengths, coverage, and kmer sizes.
+"""
+
 import argparse
 import copy
 from random import randint
