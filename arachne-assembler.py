@@ -14,11 +14,13 @@ from difflib import SequenceMatcher
 from graphviz import Digraph
 
 
-def get_reads(seq, read_len, num_reads):
+def get_reads(seq, read_len, num_reads, k):
 	reads = []
 
 	for _ in range(num_reads):
-		reads.append(fragment_read(seq, read_len))
+		read = fragment_read(seq, read_len)
+		if len(read) > k:
+			reads.append(read)
 
 	return reads
 
@@ -119,6 +121,7 @@ def simplify_debruijn(graph, reverse_graph):
 	reverse_graph, _ = sieve_graph(reverse_graph)
 
 	kmers = list(graph.keys())
+	k = len(kmers[0])
 	change = 1
 
 	while change:
@@ -131,9 +134,9 @@ def simplify_debruijn(graph, reverse_graph):
 				if len(graph[word]) == 1 and len(reverse_graph[list(graph[word])[0]]) == 1:
 					follower = list(graph[word])[0]
 
-					s = SequenceMatcher(None, word, follower)
-					alpha, beta, overlap_len = s.find_longest_match(0, len(word), 0, len(follower))
-					new_word = word[:alpha] + word[alpha : alpha + overlap_len] + follower[beta + overlap_len:]
+					s = SequenceMatcher(None, follower, word)
+					alpha, beta, overlap_len = s.find_longest_match(0, len(follower), 0, len(word))
+					new_word = word[: beta + overlap_len] + follower[alpha + overlap_len:]
 
 					# set new word in graph with appropriate chain
 					graph[new_word] = graph[follower]
@@ -197,6 +200,7 @@ def visualize_graph(graphs, labels):
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description="Arachne: Naive de novo genome assembler")
+	parser.add_argument("-p", "--plaintext", metavar="seqfile", type=str, help="plain-text sequence source file")
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
 	parser.add_argument("num_reads", metavar="N", type=int, help="number of reads")
 	parser.add_argument("k", metavar="k", type=int, default=4, help="kmer length")
@@ -209,9 +213,13 @@ def parse_arguments():
 def main():
 	args = parse_arguments()
 
-	sample = "ATGGAAGTCGCGGAATC"
+	if args.plaintext:
+		with open(args.plaintext) as seq_file:
+			sample = seq_file.read().replace('\n', '').replace(' ', '')
+	else:
+		sample = "ATGGAAGTCGCGGAATC"
 
-	reads = get_reads(sample, args.read_len, args.num_reads)
+	reads = get_reads(sample, args.read_len, args.num_reads, args.k)
 
 	coverage = get_coverage(len(sample), reads, args.num_reads)
 
@@ -222,7 +230,7 @@ def main():
 
 	print("Sequence:", sample)
 	print("\nCoverage:", coverage)
-	print("\nOriginal Contigs:")
+	print("\nOriginal Kmers:")
 	for key in debruijn.keys():
 		print("\t%s" % key)
 	print("\nAssembled Contigs:")
