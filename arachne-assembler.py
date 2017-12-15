@@ -24,7 +24,6 @@ def get_reads(seq, read_len, num_reads, k):
 
 	return reads
 
-
 def fragment_read(seq, frag_len):
 	ind = randint(-frag_len / 2, len(seq) - 1)
 	if (ind < 0):
@@ -205,7 +204,7 @@ def visualize_graph(graphs, labels):
 
 def parse_arguments():
 	parser = argparse.ArgumentParser(description="Arachne: Naive de novo genome assembler")
-	parser.add_argument("-p", "--plaintext", metavar="seqfile", type=str, help="plain-text sequence source file")
+	parser.add_argument("-f", "--file", metavar=("filepath", "format"), nargs=2, type=str, help="DNA sequence source file as 'txt', 'fastq', or 'fasta'")
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
 	parser.add_argument("num_reads", metavar="N", type=int, help="number of reads")
 	parser.add_argument("k", metavar="k", type=int, default=4, help="kmer length")
@@ -218,8 +217,8 @@ def parse_arguments():
 def main():
 	args = parse_arguments()
 
-	if args.plaintext:
-		with open(args.plaintext) as seq_file:
+	if args.file and args.file[1] == "txt":
+		with open(args.file[0]) as seq_file:
 			sample = seq_file.read().replace('\n', '').replace(' ', '')
 	else:
 		sample = "ATGGAAGTCGCGGAATC"
