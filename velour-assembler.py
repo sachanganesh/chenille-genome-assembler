@@ -101,10 +101,10 @@ class VelourAssembler(object):
 	def assemble(self):
 		VelourAssembler.remove_isolates(self._graph)
 
-		kmers = copy.deepcopy(self._graph.nodes())
 		unresolved = 1
 
 		while unresolved:
+			kmers = copy.deepcopy(self._graph.nodes())
 			graph_size = len(self._graph.nodes())
 
 			for kmer in kmers:
@@ -139,9 +139,8 @@ class VelourAssembler(object):
 			unresolved = graph_size - len(self._graph.nodes())
 
 
-	def visualize_graph(self):
-		nx.draw_spectral(self.get_graph(), with_labels=True, arrows=True)
-		plt.show()
+	def visualize_graph(self, ax=None):
+		nx.draw_spectral(self.get_graph(), with_labels=True, arrows=True, ax=ax)
 
 
 def parse_arguments():
@@ -177,13 +176,22 @@ def main():
 	for node in assembly.get_graph().nodes():
 		print("\t%s" % node)
 
+	# fig = plt.figure()
+	# plt.gca().set_aspect('equal', adjustable='datalim')
+	# ax = fig.add_subplot(1, 2, 1)
+	assembly.visualize_graph()
+
 	assembly.assemble()
 	print("\nAssembled Contigs:")
 	for node in assembly.get_graph().nodes():
 		print("\t%s" % node)
 
+	# ax = fig.add_subplot(1, 2, 2)
+	# assembly.visualize_graph(ax)
+
 	if args.display:
-		assembly.visualize_graph()
+		plt.show()
+
 
 if __name__ == "__main__":
 	main()
