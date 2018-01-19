@@ -6,15 +6,13 @@
 	read lengths, coverage, and kmer sizes.
 """
 
+import networkx as nx
+from difflib import SequenceMatcher
+from matplotlib import pyplot as plt
+
 import argparse
 import copy
 from random import randint
-from Bio import Seq, SeqIO, SeqRecord
-from difflib import SequenceMatcher
-import networkx as nx
-from matplotlib import pyplot as plt
-from pydot import graph_from_dot_data
-from graphviz import Digraph
 
 
 class VelourAssembler(object):
