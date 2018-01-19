@@ -17,7 +17,7 @@ from pydot import graph_from_dot_data
 from graphviz import Digraph
 
 
-class ChenilleAssembler(object):
+class VelourAssembler(object):
 	def __init__(self, reads, read_len, k):
 		self._k = k
 		self._kmers = sorted(self.get_kmers(k, reads, read_len))
@@ -30,7 +30,7 @@ class ChenilleAssembler(object):
 		reads = []
 
 		for _ in range(num_reads):
-			read = ChenilleAssembler.fragment_read(seq, read_len)
+			read = VelourAssembler.fragment_read(seq, read_len)
 			if len(read) > k:
 				reads.append(read)
 
@@ -101,7 +101,7 @@ class ChenilleAssembler(object):
 
 
 	def assemble(self):
-		ChenilleAssembler.remove_isolates(self._graph)
+		VelourAssembler.remove_isolates(self._graph)
 
 		kmers = copy.deepcopy(self._graph.nodes())
 		unresolved = 1
@@ -147,7 +147,7 @@ class ChenilleAssembler(object):
 
 
 def parse_arguments():
-	parser = argparse.ArgumentParser(description="Chenille: Naive de novo genome assembler")
+	parser = argparse.ArgumentParser(description="Velour: Naive de novo genome assembler")
 	parser.add_argument("-f", "--file", metavar=("filepath", "format"), nargs=2, type=str, help="DNA sequence source file as 'txt', 'fastq', or 'fasta'")
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
 	parser.add_argument("num_reads", metavar="N", type=int, help="number of reads")
@@ -167,11 +167,11 @@ def main():
 	else:
 		sample = "ATGGAAGTCGCGGAATC"
 
-	reads = ChenilleAssembler.get_reads(sample, args.read_len, args.num_reads, args.k)
+	reads = VelourAssembler.get_reads(sample, args.read_len, args.num_reads, args.k)
 
-	coverage = ChenilleAssembler.get_coverage(len(sample), reads, args.num_reads)
+	coverage = VelourAssembler.get_coverage(len(sample), reads, args.num_reads)
 
-	assembly = ChenilleAssembler(reads, args.read_len, args.k)
+	assembly = VelourAssembler(reads, args.read_len, args.k)
 
 	print("Sequence:", sample)
 	print("\nCoverage:", coverage)
