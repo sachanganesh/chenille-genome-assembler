@@ -11,17 +11,18 @@ import copy
 from random import randint
 from Bio import Seq, SeqIO, SeqRecord
 from difflib import SequenceMatcher
+import networkx as nx
+from matplotlib import pyplot as plt
+from pydot import graph_from_dot_data
 from graphviz import Digraph
 
 
-class ArachneAssembler(object):
+class ChenilleAssembler(object):
 	def __init__(self, reads, read_len, k):
 		self._k = k
 		self._kmers = sorted(self.get_kmers(k, reads, read_len))
-		self._graph = {}
-		self._graph_raw = {}
-		self._graph_rev = {}
-		self._graph_rev_raw = {}
+		self._graph = nx.DiGraph()
+		self.build()
 
 
 	@staticmethod
@@ -29,7 +30,7 @@ class ArachneAssembler(object):
 		reads = []
 
 		for _ in range(num_reads):
-			read = ArachneAssembler.fragment_read(seq, read_len)
+			read = ChenilleAssembler.fragment_read(seq, read_len)
 			if len(read) > k:
 				reads.append(read)
 
@@ -76,171 +77,77 @@ class ArachneAssembler(object):
 		followers = []
 
 		for other in self._kmers:
-			if kmer != other and kmer[1:] == other[:-1]:
+			if kmer is not other and kmer[1:] == other[:-1]:
 				followers.append(other)
 
 		return followers
 
 
-	def build_debruijn(self):
-		graph = {}
-		reverse_graph = {}
-
+	def build(self):
 		for kmer in self._kmers:
 			followers = self.find_next_kmers(kmer)
-			graph[kmer] = set(followers)
-
-			for follower in followers:
-				if follower in reverse_graph:
-					reverse_graph[follower].add(kmer)
-				else:
-					reverse_graph[follower] = set([kmer])
-
-		for key in graph:
-			if key not in reverse_graph:
-				reverse_graph[key] = set()
-
-		self._graph = graph
-		self._graph_rev = reverse_graph
+			self._graph.add_node(kmer)
+			self._graph.add_edges_from([(kmer, fol) for fol in followers])
 
 
 	def get_graph(self):
 		return self._graph
 
 
-	def get_raw_graph(self):
-		return self._graph_raw
+	@staticmethod
+	def remove_isolates(graph):
+		isolates = list(nx.isolates(graph))
+		graph.remove_nodes_from(isolates)
 
 
-	def get_predecessor_graph(self):
-		return self._graph_rev
+	def assemble(self):
+		ChenilleAssembler.remove_isolates(self._graph)
 
+		kmers = copy.deepcopy(self._graph.nodes())
+		unresolved = 1
 
-	def get_predecessor_raw_graph(self):
-		return self._graph_rev_raw
-
-
-	def get_graph_ends(self):
-		heads = []
-		tails = []
-
-		for key in self._graph:
-			if len(self._graph_rev[key]) == 0:
-				heads.append(key)
-
-		for key in self._graph_rev:
-			if len(self._graph[key]) == 0:
-				tails.append(key)
-
-		return heads, tails
-
-
-	def sieve_graph(self, graph):
-		sieved_graph = {}
-
-		for key in graph:
-			if key in set.union(*graph.values()) or len(graph[key]) != 0:
-				sieved_graph[key] = graph[key]
-
-		return sieved_graph, graph
-
-
-	def simplify_debruijn(self):
-		graph, _ = self.sieve_graph(self._graph)
-		reverse_graph, _ = self.sieve_graph(self._graph_rev)
-
-		kmers = list(graph.keys())
-		k = len(kmers[0])
-		change = 1
-
-		while change:
-			graph_size = len(graph.keys())
+		while unresolved:
+			graph_size = len(self._graph.nodes())
 
 			for kmer in kmers:
 				word = kmer
 
-				while word is not None and word in graph:
-					if len(graph[word]) == 1 and len(reverse_graph[list(graph[word])[0]]) == 1:
-						follower = list(graph[word])[0]
+				while word is not None and word in self._graph:
+					follower_parents = [self._graph.predecessors(w) for w in list(self._graph.successors(word))]
 
+					if self._graph.out_degree(word) == 1 and len(follower_parents) is 1:
+						follower = list(self._graph.successors(word))[0]
+
+						# Overlap the words and get new joined word
 						s = SequenceMatcher(None, follower, word)
 						alpha, beta, overlap_len = s.find_longest_match(0, len(follower), 0, len(word))
 						new_word = word[: beta + overlap_len] + follower[alpha + overlap_len:]
 
 						# set new word in graph with appropriate chain
-						graph[new_word] = graph[follower]
+						self._graph.add_node(new_word)
+						self._graph.add_edges_from([(new_word, child) for child in self._graph.successors(follower)])
 
-						# set new word in reverse_graph with appropriate chain
-						reverse_graph[new_word] = reverse_graph[word]
+						for parent in self._graph.predecessors(word):
+							self._graph.add_edge(parent, new_word)
 
-						# get predecessors of word from reverse_graph
-						word_predecessors = list(reverse_graph[word])
-						follower_antecessors = list(graph[follower])
-
-						# for each predecessor in graph, link new word in with existing chain
-						for predecessor in word_predecessors:
-							graph[predecessor].remove(word)
-							graph[predecessor].add(new_word)
-
-						# for each antecessor in reverse_graph, link new word in with existing chain
-						for antecessor in follower_antecessors:
-							reverse_graph[antecessor].remove(follower)
-							reverse_graph[antecessor].add(new_word)
-
-						# empty original graph nodes
-						graph.pop(word, 0)
-						graph.pop(follower, 0)
-
-						# empty original reverse_graph nodes
-						reverse_graph.pop(word, 0)
-						reverse_graph.pop(follower, 0)
+						# remove resolved nodes from graph
+						self._graph.remove_node(word)
+						self._graph.remove_node(follower)
 
 						word = new_word
 					else:
 						word = None
 
-			change = graph_size - len(graph.keys())
-
-		self._graph_raw = self._graph
-		self._graph_rev_raw = self._graph_rev
-
-		self._graph = graph
-		self._graph_rev = reverse_graph
+			unresolved = graph_size - len(self._graph.nodes())
 
 
 	def visualize_graph(self):
-		dot = Digraph(comment="de Bruijn graph for assembly")
-
-		graphs = [self._graph_raw, self._graph]
-		labels = ["plain_de-debruijn", "assembled_contigs"]
-
-		for enum, pair in enumerate(zip(labels, graphs)):
-			label = pair[0]
-			graph = pair[1]
-			name = "cluster_" + label
-
-			with dot.subgraph(name=name) as c:
-				c.attr(label=label)
-				c.attr("node", shape="box")
-
-				for kmer in graph:
-					node_label = kmer
-					for i in range(enum):
-						node_label += "_"
-					c.node(node_label, node_label)
-
-					for follower in graph[kmer]:
-						follower_label = follower
-						for i in range(enum):
-							follower_label += "_"
-						c.edge(node_label, follower_label)
-
-		dot.attr(rankdir="LR")
-		dot.render("assembly.gv", view=True)
+		nx.draw_spectral(self.get_graph(), with_labels=True, arrows=True)
+		plt.show()
 
 
 def parse_arguments():
-	parser = argparse.ArgumentParser(description="Arachne: Naive de novo genome assembler")
+	parser = argparse.ArgumentParser(description="Chenille: Naive de novo genome assembler")
 	parser.add_argument("-f", "--file", metavar=("filepath", "format"), nargs=2, type=str, help="DNA sequence source file as 'txt', 'fastq', or 'fasta'")
 	parser.add_argument("read_len", metavar="L", type=int, help="length of reads")
 	parser.add_argument("num_reads", metavar="N", type=int, help="number of reads")
@@ -260,25 +167,22 @@ def main():
 	else:
 		sample = "ATGGAAGTCGCGGAATC"
 
-	reads = ArachneAssembler.get_reads(sample, args.read_len, args.num_reads, args.k)
+	reads = ChenilleAssembler.get_reads(sample, args.read_len, args.num_reads, args.k)
 
-	coverage = ArachneAssembler.get_coverage(len(sample), reads, args.num_reads)
+	coverage = ChenilleAssembler.get_coverage(len(sample), reads, args.num_reads)
 
-	assembly = ArachneAssembler(reads, args.read_len, args.k)
-	assembly.build_debruijn()
-	assembly.simplify_debruijn()
-
-	# debruijn, rev_debruijn = build_debruijn(kmers)
-	# simp_debruijn, simp_rev_debruijn = simplify_debruijn(copy.deepcopy(debruijn), copy.deepcopy(rev_debruijn))
+	assembly = ChenilleAssembler(reads, args.read_len, args.k)
 
 	print("Sequence:", sample)
 	print("\nCoverage:", coverage)
 	print("\nOriginal Kmers:")
-	for key in assembly.get_raw_graph().keys():
-		print("\t%s" % key)
+	for node in assembly.get_graph().nodes():
+		print("\t%s" % node)
+
+	assembly.assemble()
 	print("\nAssembled Contigs:")
-	for key in assembly.get_graph().keys():
-		print("\t%s" % key)
+	for node in assembly.get_graph().nodes():
+		print("\t%s" % node)
 
 	if args.display:
 		assembly.visualize_graph()
