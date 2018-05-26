@@ -13,6 +13,9 @@ from matplotlib import pyplot as plt
 import argparse
 import copy
 from random import randint
+from io import StringIO
+from matplotlib import image as mpimg
+from PIL import Image
 
 
 class VelourAssembler(object):
@@ -139,8 +142,40 @@ class VelourAssembler(object):
 			unresolved = graph_size - len(self._graph.nodes())
 
 
-	def visualize_graph(self, ax=None):
-		nx.draw_spectral(self.get_graph(), with_labels=True, arrows=True, ax=ax)
+	def visualize_graph(self, ax=None, render=False):
+		# nx.draw_random(self.get_graph(), with_labels=True, arrows=True, ax=ax)
+		# dot = nx.drawing.nx_pydot.to_pydot(self.get_graph())
+		# img = Image(dot.create_png())
+		# img.show()
+		# plt.imshow(img)
+		# plt.show()
+
+		dot = nx.DiGraph(comment="de Bruijn graph for assembly")
+
+		for enum, pair in enumerate(zip(labels, graphs)):
+			label = pair[0]
+			graph = pair[1]
+			name = "cluster_" + label
+
+			with dot.subgraph(name=name) as c:
+				c.attr(label=label)
+				c.attr("node", shape="box")
+
+				for kmer in graph:
+					node_label = kmer
+					for i in range(enum):
+						node_label += "_"
+					c.node(node_label, node_label)
+
+				for follower in graph[kmer]:
+					follower_label = follower
+					for i in range(enum):
+						follower_label += "_"
+				c.edge(node_label, follower_label)
+
+		dot.attr(rankdir="LR")
+		dot.render("assembly.gv", view=True)
+
 
 
 def parse_arguments():
@@ -166,6 +201,8 @@ def main():
 
 	reads = VelourAssembler.get_reads(sample, args.read_len, args.num_reads, args.k)
 
+	print(reads)
+
 	coverage = VelourAssembler.get_coverage(len(sample), reads, args.num_reads)
 
 	assembly = VelourAssembler(reads, args.read_len, args.k)
@@ -176,21 +213,14 @@ def main():
 	for node in assembly.get_graph().nodes():
 		print("\t%s" % node)
 
-	# fig = plt.figure()
-	# plt.gca().set_aspect('equal', adjustable='datalim')
-	# ax = fig.add_subplot(1, 2, 1)
-	assembly.visualize_graph()
+	assembly.visualize_graph(render=args.display)
 
 	assembly.assemble()
 	print("\nAssembled Contigs:")
 	for node in assembly.get_graph().nodes():
 		print("\t%s" % node)
 
-	# ax = fig.add_subplot(1, 2, 2)
-	# assembly.visualize_graph(ax)
-
-	if args.display:
-		plt.show()
+	assembly.visualize_graph(render=args.display)
 
 
 if __name__ == "__main__":
