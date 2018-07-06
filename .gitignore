@@ -1,6 +1,7 @@
+data/
 *.gv
 *.pdf
-.ipynb_checkpoints
 *.gz
 *.fastq
 *.fasta
+.ipynb_checkpoints
