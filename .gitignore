@@ -5,3 +5,6 @@ data/
 *.fastq
 *.fasta
 .ipynb_checkpoints
+
+vendor/
+velour
