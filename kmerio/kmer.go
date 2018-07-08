@@ -1,55 +1,20 @@
 package kmerio
 
-import (
-	"os"
-	"bufio"
-	"strings"
-	"fmt"
+// "github.com/emirpasic/gods/sets/hashset"
 
-	"github.com/emirpasic/gods/sets/hashset"
-)
+// ===================================
+// Kmer Utilities
+// ===================================
 
-func checkError(e error) {
-	if e != nil {
-		panic(e)
-	}
+type Kmer struct {
+	content	string
 }
 
-func ParseFastQ(filepath string, k int) {
-	f, err := os.Open(filepath)
-	checkError(err)
-	defer f.Close()
-
-	s := bufio.NewScanner(f)
-	var kmers [][]int
-	i := 0
-
-	for s.Scan() {
-		if (i - 1) % 4 == 0 {
-			sr := strings.ToUpper(s.Text())
-
-			for _, kmer := range GetKmersFromShortRead(k, []byte(sr)) {
-				kmers = append(kmers, kmer)
-			}
-		}
-		i++
-	}
-
-	fmt.Println(len(kmers))
+func NewKmer(kmer string) Kmer {
+	return Kmer{content: kmer}
 }
 
-func GetKmersFromShortRead(k int, seq []byte) [][]int {
-	num_kmers := len(seq) - k + 1
-	kmers := make([][]int, num_kmers)
-
-	for i := range kmers {
-		kmers[i] = NucleotideToInt(seq[i : i + k])
-	}
-
-	return kmers
-}
-
-func NucleotideToInt(kmer []byte) []int {
+func MapNucleotidesToInts(kmer string) []int {
 	new_kmer := make([]int, len(kmer))
 
 	for i, nt := range kmer {
@@ -67,4 +32,54 @@ func NucleotideToInt(kmer []byte) []int {
 	}
 
 	return new_kmer
+}
+
+// ===================================
+// KmerSet Utilities
+// ===================================
+
+type KmerSet struct {
+	set map[Kmer]bool
+}
+
+func NewKmerSet() KmerSet {
+	return KmerSet{set: make(map[Kmer]bool)}
+}
+
+func (ks *KmerSet) includes(kmer Kmer) bool {
+	return ks.set[kmer]
+}
+
+func (ks *KmerSet) add(kmer Kmer) bool {
+	if !ks.includes(kmer) {
+		ks.set[kmer] = true
+		return true
+	} else {
+		return false
+	}
+}
+
+func (ks *KmerSet) addAll(kmers []Kmer) []bool {
+	added := make([]bool, len(kmers))
+
+	for i := range kmers {
+		added[i] = ks.add(kmers[i])
+	}
+
+	return added
+}
+
+// ===================================
+// Kmer Operations
+// ===================================
+
+func GetKmersFromShortRead(k int, sr ShortRead) []Kmer {
+	num_kmers := len(sr.content) - k + 1
+	kmers := make([]Kmer, num_kmers)
+
+	for i := range kmers {
+		kmers[i] = NewKmer(sr.content[i : i + k])
+	}
+
+	return kmers
 }
