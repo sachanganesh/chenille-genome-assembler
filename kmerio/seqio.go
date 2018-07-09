@@ -4,15 +4,14 @@ import (
 	"os"
 	"bufio"
 	"strings"
-	"fmt"
 )
 
 type ShortRead struct {
-	content string
+	Content string
 }
 
 func NewShortRead(raw_sr string) ShortRead {
-	return ShortRead{content: strings.ToUpper(raw_sr)}
+	return ShortRead{Content: strings.ToUpper(raw_sr)}
 }
 
 func checkError(e error) {
@@ -21,7 +20,7 @@ func checkError(e error) {
 	}
 }
 
-func ParseFastQ(filepath string, k int) {
+func ParseFastQ(filepath string, k int) KmerSet {
 	f, err := os.Open(filepath)
 	checkError(err)
 	defer f.Close()
@@ -34,10 +33,10 @@ func ParseFastQ(filepath string, k int) {
 		if (i - 1) % 4 == 0 {
 			sr := NewShortRead(s.Text())
 
-			kmers.addAll(GetKmersFromShortRead(k, sr))
+			kmers.AddAll(GetKmersFromShortRead(k, sr))
 		}
 		i++
 	}
 
-	fmt.Println(len(kmers.set))
+	return kmers
 }
