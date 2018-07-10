@@ -10,12 +10,16 @@ import (
 // Kmer Utilities
 // ===================================
 
-type Kmer struct {
-	Content	string
-}
+func CleanKmer(kmer string) string {
+	for i, nt := range kmer {
+		if nt != 'A' && nt != 'C' && nt != 'G' && nt != 'T' {
+			tmp := []byte(kmer)
+			tmp[i] = 'A'
+			kmer = string(tmp)
+		}
+	}
 
-func NewKmer(kmer string) Kmer {
-	return Kmer{Content: kmer}
+	return kmer
 }
 
 func MapNucleotidesToInts(kmer string) []int {
@@ -39,52 +43,6 @@ func MapNucleotidesToInts(kmer string) []int {
 }
 
 // ===================================
-// KmerSet Utilities
-// ===================================
-
-type KmerSet struct {
-	Set map[Kmer]int
-}
-
-func NewKmerSet() KmerSet {
-	return KmerSet{Set: make(map[Kmer]int)}
-}
-
-func (ks *KmerSet) Includes(kmer Kmer) bool {
-	return ks.Set[kmer] > 0
-}
-
-func (ks *KmerSet) Add(kmer Kmer) bool {
-	if !ks.Includes(kmer) {
-		ks.Set[kmer]++
-		return true
-	} else {
-		ks.Set[kmer]++
-		return false
-	}
-}
-
-func (ks *KmerSet) AddAll(kmers []Kmer) []bool {
-	added := make([]bool, len(kmers))
-
-	for i := range kmers {
-		added[i] = ks.Add(kmers[i])
-	}
-
-	return added
-}
-
-func (ks *KmerSet) Merge(os KmerSet) {
-	if len(ks.Set) > 0 {
-		for other_key := range os.Set {
-			ks.Set[other_key] += os.Set[other_key]
-		}
-	} else {
-		ks.Set = os.Set
-	}
-}
-
-// ===================================
 // Kmer Operations
 // ===================================
 
@@ -99,12 +57,12 @@ func EstimateK(genome_size int) int {
 	}
 }
 
-func GetKmersFromShortRead(k int, sr ShortRead) []Kmer {
-	num_kmers := len(sr.Content) - k + 1
-	kmers := make([]Kmer, num_kmers)
+func GetKmersFromShortRead(k int, sr ShortRead) []string {
+	num_kmers := len(sr.Sequence) - k + 1
+	kmers := make([]string, num_kmers)
 
 	for i := range kmers {
-		kmers[i] = NewKmer(sr.Content[i : i + k])
+		kmers[i] = sr.Sequence[i : i + k]
 	}
 
 	return kmers
