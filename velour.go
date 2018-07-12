@@ -16,25 +16,24 @@ func main() {
 	k := kmerio.EstimateK(2900000)
 	fmt.Println("Estimated K:", k)
 
-	timeConcurrentTest(fragments, k)
 	timeAllTests(fragments, k)
 }
 
 func timeAllTests(fragments []string, k int) {
 	start := time.Now()
-
 	testSequential(fragments, k)
-	t1 := time.Now()
+	t1 := time.Since(start)
+	fmt.Println("Time for Sequential W/O Locks", t1)
 
+	start = time.Now()
 	testSequentialWithLocks(fragments, k)
-	t2 := time.Now()
+	t2 := time.Since(start)
+	fmt.Println("Time for Sequential W/  Locks", t2)
 
+	start = time.Now()
 	testConcurrent(fragments, k)
-	t3 := time.Now()
-
-	fmt.Println("Time for Sequential W/O Locks", t1.Sub(start))
-	fmt.Println("Time for Sequential W/  Locks", t2.Sub(t1))
-	fmt.Println("Time for Concurrent W/  Locks", t3.Sub(t2))
+	t3 := time.Since(start)
+	fmt.Println("Time for Concurrent W/  Locks", t3)
 }
 
 func timeConcurrentTest(fragments []string, k int) {
