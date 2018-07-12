@@ -4,7 +4,6 @@ import (
 	"os"
 	"bufio"
 	"strings"
-	// "sync"
 
 	"velour/debruijn"
 )
