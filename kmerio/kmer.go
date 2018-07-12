@@ -11,14 +11,15 @@ import (
 // ===================================
 
 func CleanKmer(kmer string) string {
-	for i, nt := range kmer {
+	tmp := []byte(kmer)
+
+	for i, nt := range tmp {
 		if nt != 'A' && nt != 'C' && nt != 'G' && nt != 'T' {
-			tmp := []byte(kmer)
 			tmp[i] = 'A'
-			kmer = string(tmp)
 		}
 	}
 
+	kmer = string(tmp)
 	return kmer
 }
 
@@ -62,7 +63,7 @@ func GetKmersFromShortRead(k int, sr ShortRead) []string {
 	kmers := make([]string, num_kmers)
 
 	for i := range kmers {
-		kmers[i] = sr.Sequence[i : i + k]
+		kmers[i] = CleanKmer(sr.Sequence[i : i + k])
 	}
 
 	return kmers
