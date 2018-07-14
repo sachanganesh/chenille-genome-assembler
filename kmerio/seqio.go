@@ -18,12 +18,10 @@ func checkError(e error) {
 // ShortRead Utilities
 // ===================================
 
-type ShortRead struct {
-	Sequence string
-}
+type ShortRead string
 
 func NewShortRead(raw_sr string) ShortRead {
-	return ShortRead{Sequence: strings.ToUpper(raw_sr)}
+	return strings.ToUpper(raw_sr)}
 }
 
 // ===================================

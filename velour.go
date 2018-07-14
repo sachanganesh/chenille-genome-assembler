@@ -13,5 +13,5 @@ func main() {
 	k := kmerio.EstimateK(2900000)
 	fmt.Println("Estimated K:", k)
 
-	test_time.TimeSequential(fragments, k)
+	test_time.TimeAll(fragments, k)
 }

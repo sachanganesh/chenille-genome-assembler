@@ -59,11 +59,11 @@ func EstimateK(genome_size int) int {
 }
 
 func GetKmersFromShortRead(k int, sr ShortRead) []string {
-	num_kmers := len(sr.Sequence) - k + 1
+	num_kmers := len(sr) - k + 1
 	kmers := make([]string, num_kmers)
 
 	for i := range kmers {
-		kmers[i] = CleanKmer(sr.Sequence[i : i + k])
+		kmers[i] = CleanKmer(sr[i : i + k])
 	}
 
 	return kmers
