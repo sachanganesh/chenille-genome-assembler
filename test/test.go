@@ -3,7 +3,6 @@ package test
 import (
 	"fmt"
 	// "sync"
-	"unsafe"
 
 	"velour/seqio"
 	"velour/debruijn"
@@ -14,7 +13,6 @@ import (
 func printGraphData(graph debruijn.Graph) {
 	fmt.Println("Number of Total  Kmers:", graph.GetNumNodesSeen())
 	fmt.Println("Number of Unique Kmers:", graph.Len())
-	fmt.Println("Size of graph:         ", unsafe.Sizeof(graph))
 }
 
 func TestHMGraph(fragments []string, k int) debruijn.Graph {
