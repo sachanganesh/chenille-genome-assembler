@@ -85,7 +85,7 @@ func (graph *PASHAGraph) SetNode(kmer debruijn.Kmer, node debruijn.GraphNode) in
 func (graph *PASHAGraph) SetNodeAtIndex(i int, node debruijn.GraphNode) int {
 	if i >= 0 && i < graph.Len() {
 		graph.nodes = append(graph.nodes, graph.nodes[graph.Len() - 1])
-		copy(graph.nodes[i + 1:], graph.nodes[i:])
+		copy(graph.nodes[i + 1:], graph.nodes[i : graph.Len() - 2])
 		graph.nodes[i] = &node
 	} else {
 		i = graph.Len()
