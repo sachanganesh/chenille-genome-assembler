@@ -9,13 +9,13 @@ import (
 // ===================================
 
 type HMGraph struct {
-	lookup			map[debruijn.Kmer]int
+	lookup			map[uint64]int
 	nodes			[]*debruijn.GraphNode
 	newNode			debruijn.NodeGenerator
 }
 
 func NewGraph(newNode debruijn.NodeGenerator) debruijn.Graph {
-	var graph debruijn.Graph = &HMGraph{make(map[debruijn.Kmer]int), make([]*debruijn.GraphNode, 0, 3000000), newNode}
+	var graph debruijn.Graph = &HMGraph{make(map[uint64]int), make([]*debruijn.GraphNode, 0, 3000000), newNode}
 	return graph
 }
 
@@ -52,12 +52,12 @@ func (graph *HMGraph) NewNode(kmer debruijn.Kmer) debruijn.GraphNode {
 }
 
 func (graph *HMGraph) GetID(kmer debruijn.Kmer) (int, bool) {
-	kmer_id, ok := graph.lookup[kmer]
+	kmer_id, ok := graph.lookup[kmer.GetValue()]
 	return kmer_id, ok
 }
 
 func (graph *HMGraph) SetID(kmer debruijn.Kmer, kmer_id int) {
-	graph.lookup[kmer] = kmer_id
+	graph.lookup[kmer.GetValue()] = kmer_id
 }
 
 func (graph *HMGraph) GetNode(kmer debruijn.Kmer) (int, debruijn.GraphNode, bool) {
