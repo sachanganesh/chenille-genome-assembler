@@ -5,9 +5,10 @@ import (
 	// "sync"
 	"unsafe"
 
-	"velour/kmerio"
+	"velour/seqio"
 	"velour/debruijn"
 	"velour/debruijn/hmgraph"
+	"velour/debruijn/pasha"
 )
 
 func printGraphData(graph debruijn.Graph) {
@@ -17,13 +18,27 @@ func printGraphData(graph debruijn.Graph) {
 }
 
 func TestHMGraph(fragments []string, k int) debruijn.Graph {
-	fmt.Println("\nTesting Sequential Graph Read")
+	fmt.Println("\nTesting HashMap Graph Read")
 
 	var node_gen debruijn.NodeGenerator = hmgraph.NewNode
 	var graph debruijn.Graph = hmgraph.NewGraph(node_gen)
 
 	for _, fragment := range fragments {
-		kmerio.GraphFromFastQ(fragment, k, graph)
+		seqio.GraphFromFastQ(fragment, k, graph)
+	}
+
+	printGraphData(graph)
+	return graph
+}
+
+func TestPASHAGraph(fragments []string, k int) debruijn.Graph {
+	fmt.Println("\nTesting PASHA Graph Read")
+
+	var node_gen debruijn.NodeGenerator = pasha.NewNode
+	var graph debruijn.Graph = pasha.NewGraph(node_gen)
+
+	for _, fragment := range fragments {
+		seqio.GraphFromFastQ(fragment, k, graph)
 	}
 
 	printGraphData(graph)

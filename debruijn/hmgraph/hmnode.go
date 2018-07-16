@@ -9,13 +9,13 @@ import (
 // ===================================
 
 type HMNode struct {
-	kmer			string
+	kmer			debruijn.Kmer
 	frequency		int
 	predecessors	[]int
 	successors		[]int
 }
 
-func NewNode(kmer string) debruijn.GraphNode {
+func NewNode(kmer debruijn.Kmer) debruijn.GraphNode {
 	var node debruijn.GraphNode = &HMNode{kmer, 1, make([]int, 0, 2), make([]int, 0, 2)}
 	return node
 }
@@ -24,7 +24,7 @@ func NewNode(kmer string) debruijn.GraphNode {
 // HMNode Functions
 // ===================================
 
-func (node *HMNode) GetKmer() string {
+func (node *HMNode) GetKmer() debruijn.Kmer {
 	return node.kmer
 }
 
@@ -81,7 +81,10 @@ func (node *HMNode) AddSuccessor(succ_id int) {
 }
 
 func (node *HMNode) Merge(other_entry debruijn.GraphNode) {
-	if node.GetKmer() == other_entry.GetKmer() {
+	kmer_a := node.GetKmer()
+	kmer_b := other_entry.GetKmer()
+
+	if kmer_a.Equals(kmer_b) {
 		node.SetFrequency(node.GetFrequency() + other_entry.GetFrequency())
 
 		for _, pred_id := range other_entry.GetPredecessors() {

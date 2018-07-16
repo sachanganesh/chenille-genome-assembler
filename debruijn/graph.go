@@ -1,19 +1,23 @@
 package debruijn
 
+// ===================================
+// Graph
+// ===================================
+
 type Graph interface {
 	Len()											int
 	GetFrequencies()								[]int
 	GetNumNodesSeen()								int
-	NewNode(string)									GraphNode
-	GetNode(string)							(int, GraphNode, bool)
-	SetNode(string, GraphNode)						int
-	ConnectNodeToGraph(string, int, GraphNode)
-	AddNode(string)									int
-	AddNodes([]string)								[]int
+	NewNode(Kmer)									GraphNode
+	GetNode(Kmer)									(int, GraphNode, bool)
+	SetNode(Kmer, GraphNode)						int
+	ConnectNodeToGraph(Kmer, int, GraphNode)
+	AddNode(Kmer)									int
+	AddNodes([]Kmer)								[]int
 }
 
 type GraphNode interface {
-	GetKmer()				string
+	GetKmer()				Kmer
 	GetFrequency()			int
 	SetFrequency(int)
 	IncrementFrequency()
@@ -26,4 +30,4 @@ type GraphNode interface {
 	Merge(GraphNode)
 }
 
-type NodeGenerator func(string) GraphNode
+type NodeGenerator func(Kmer) GraphNode
