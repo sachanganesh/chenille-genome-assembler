@@ -2,7 +2,6 @@ package pasha
 
 import (
 	"sort"
-
 	"velour/debruijn"
 )
 

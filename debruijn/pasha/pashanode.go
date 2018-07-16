@@ -127,7 +127,10 @@ func (node *PASHANode) AddSuccessor(nt int) {
 }
 
 func (node *PASHANode) Merge(other_entry debruijn.GraphNode) {
-	if node.GetKmer() == other_entry.GetKmer() {
+	kmer_a := node.GetKmer()
+	kmer_b := other_entry.GetKmer()
+
+	if kmer_a.Equals(kmer_b) {
 		node.SetFrequency(node.GetFrequency() + other_entry.GetFrequency())
 
 		for _, nt := range other_entry.GetPredecessors() {
