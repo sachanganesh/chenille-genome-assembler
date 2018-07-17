@@ -112,20 +112,22 @@ func GenerateNOneBits(n int) uint64 {
 
 func ConvertStringToUInt64(kmer string) uint64 {
 	var rep uint64
-	alphabet := [4]byte{'A', 'C', 'G', 'T'}
 
 	for i := range kmer {
 		var tmp uint64
 
-		for j := range alphabet {
-			if kmer[i] == alphabet[j] {
-				tmp = uint64(j)
-			}
+		switch ch := kmer[i]; ch {
+		case 'A':
+			tmp = 0
+		case 'C':
+			tmp = 1
+		case 'G':
+			tmp = 2
+		case 'T':
+			tmp = 3
 		}
 
-		tmp = tmp << (uint64(i) * 2)
-
-		rep = rep | tmp
+		rep = (rep << 2) | tmp
 	}
 
 	return rep
