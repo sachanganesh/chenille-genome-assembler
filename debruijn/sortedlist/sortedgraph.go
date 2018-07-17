@@ -1,4 +1,4 @@
-package pasha
+package sortedgraph
 
 import (
 	"sort"
@@ -6,28 +6,28 @@ import (
 )
 
 // ===================================
-// PASHAGraph
+// SortedGraph
 // ===================================
 
-type PASHAGraph struct {
+type SortedGraph struct {
 	nodes			[]*debruijn.GraphNode
 	newNode			debruijn.NodeGenerator
 }
 
 func NewGraph(newNode debruijn.NodeGenerator) debruijn.Graph {
-	var graph debruijn.Graph = &PASHAGraph{make([]*debruijn.GraphNode, 0, 3000000), newNode}
+	var graph debruijn.Graph = &SortedGraph{make([]*debruijn.GraphNode, 0, 3000000), newNode}
 	return graph
 }
 
 // ===================================
-// PASHAGraph Functions
+// SortedGraph Functions
 // ===================================
 
-func (graph *PASHAGraph) Len() int {
+func (graph *SortedGraph) Len() int {
 	return len(graph.nodes)
 }
 
-func (graph *PASHAGraph) GetFrequencies() []int {
+func (graph *SortedGraph) GetFrequencies() []int {
 	freqs := make([]int, graph.Len())
 
 	for i := range freqs {
@@ -37,7 +37,7 @@ func (graph *PASHAGraph) GetFrequencies() []int {
 	return freqs
 }
 
-func (graph *PASHAGraph) GetNumNodesSeen() int {
+func (graph *SortedGraph) GetNumNodesSeen() int {
 	num_seen := 0
 
 	for _, freq := range graph.GetFrequencies() {
@@ -47,11 +47,11 @@ func (graph *PASHAGraph) GetNumNodesSeen() int {
 	return num_seen
 }
 
-func (graph *PASHAGraph) NewNode(kmer debruijn.Kmer) debruijn.GraphNode {
+func (graph *SortedGraph) NewNode(kmer debruijn.Kmer) debruijn.GraphNode {
 	return graph.newNode(kmer)
 }
 
-func (graph *PASHAGraph) GetNode(kmer debruijn.Kmer) (int, debruijn.GraphNode, bool) {
+func (graph *SortedGraph) GetNode(kmer debruijn.Kmer) (int, debruijn.GraphNode, bool) {
 	var node debruijn.GraphNode
 
 	n := graph.Len()
@@ -69,7 +69,7 @@ func (graph *PASHAGraph) GetNode(kmer debruijn.Kmer) (int, debruijn.GraphNode, b
 	}
 }
 
-func (graph *PASHAGraph) SetNode(kmer debruijn.Kmer, node debruijn.GraphNode) int {
+func (graph *SortedGraph) SetNode(kmer debruijn.Kmer, node debruijn.GraphNode) int {
 	n := graph.Len()
 
 	i := sort.Search(n, func (i int) bool {
@@ -82,7 +82,7 @@ func (graph *PASHAGraph) SetNode(kmer debruijn.Kmer, node debruijn.GraphNode) in
 	return i
 }
 
-func (graph *PASHAGraph) SetNodeAtIndex(i int, node debruijn.GraphNode) int {
+func (graph *SortedGraph) SetNodeAtIndex(i int, node debruijn.GraphNode) int {
 	if i >= 0 && i < graph.Len() {
 		graph.nodes = append(graph.nodes, graph.nodes[graph.Len() - 1])
 		copy(graph.nodes[i + 1:], graph.nodes[i : graph.Len() - 2])
@@ -95,7 +95,7 @@ func (graph *PASHAGraph) SetNodeAtIndex(i int, node debruijn.GraphNode) int {
 	return i
 }
 
-func (graph *PASHAGraph) ConnectNodeToGraph(kmer debruijn.Kmer, kmer_ind int, node debruijn.GraphNode) {
+func (graph *SortedGraph) ConnectNodeToGraph(kmer debruijn.Kmer, kmer_ind int, node debruijn.GraphNode) {
 	nts := [4]byte{'A', 'C', 'G', 'T'}
 
 	for i, nt := range nts {
@@ -109,7 +109,7 @@ func (graph *PASHAGraph) ConnectNodeToGraph(kmer debruijn.Kmer, kmer_ind int, no
 	}
 }
 
-func (graph *PASHAGraph) AddNode(kmer debruijn.Kmer) int {
+func (graph *SortedGraph) AddNode(kmer debruijn.Kmer) int {
 	var kmer_ind int
 	var node debruijn.GraphNode
 	var ok bool
@@ -125,7 +125,7 @@ func (graph *PASHAGraph) AddNode(kmer debruijn.Kmer) int {
 	return kmer_ind
 }
 
-func (graph *PASHAGraph) AddNodes(kmers []debruijn.Kmer) []int {
+func (graph *SortedGraph) AddNodes(kmers []debruijn.Kmer) []int {
 	ids := make([]int, 0)
 
 	for _, kmer := range kmers {

@@ -6,8 +6,8 @@ import (
 
 	"velour/seqio"
 	"velour/debruijn"
-	"velour/debruijn/hmgraph"
-	"velour/debruijn/pasha"
+	"velour/debruijn/hashmap"
+	"velour/debruijn/sortedlist"
 )
 
 func printGraphData(graph debruijn.Graph) {
@@ -29,11 +29,11 @@ func TestHMGraph(fragments []string, k int) debruijn.Graph {
 	return graph
 }
 
-func TestPASHAGraph(fragments []string, k int) debruijn.Graph {
+func TestSortedGraph(fragments []string, k int) debruijn.Graph {
 	fmt.Println("\nTesting PASHA Graph Read")
 
-	var node_gen debruijn.NodeGenerator = pasha.NewNode
-	var graph debruijn.Graph = pasha.NewGraph(node_gen)
+	var node_gen debruijn.NodeGenerator = sortedgraph.NewNode
+	var graph debruijn.Graph = sortedgraph.NewGraph(node_gen)
 
 	for _, fragment := range fragments {
 		seqio.GraphFromFastQ(fragment, k, graph)

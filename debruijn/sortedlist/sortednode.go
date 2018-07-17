@@ -1,48 +1,48 @@
-package pasha
+package sortedgraph
 
 import (
 	"velour/debruijn"
 )
 
 // ===================================
-// PASHANode
+// SortedNode
 // ===================================
 
-type PASHANode struct {
+type SortedNode struct {
 	kmer			debruijn.Kmer
 	frequency		int
 	neighbors		uint8
 }
 
 func NewNode(kmer debruijn.Kmer) debruijn.GraphNode {
-	var node debruijn.GraphNode = &PASHANode{kmer, 1, 0}
+	var node debruijn.GraphNode = &SortedNode{kmer, 1, 0}
 	return node
 }
 
 // ===================================
-// PASHANode Functions
+// SortedNode Functions
 // ===================================
 
-func (node *PASHANode) GetKmer() debruijn.Kmer {
+func (node *SortedNode) GetKmer() debruijn.Kmer {
 	return node.kmer
 }
 
-func (node *PASHANode) GetFrequency() int {
+func (node *SortedNode) GetFrequency() int {
 	return node.frequency
 }
 
-func (node *PASHANode) SetFrequency(new_frequency int) {
+func (node *SortedNode) SetFrequency(new_frequency int) {
 	node.frequency = new_frequency
 }
 
-func (node *PASHANode) IncrementFrequency() {
+func (node *SortedNode) IncrementFrequency() {
 	freq := node.GetFrequency()
 	if freq != 255 {
 		node.SetFrequency(freq + 1)
 	}
 }
 
-func (node *PASHANode) GetPredecessors() []int {
+func (node *SortedNode) GetPredecessors() []int {
 	preds := make([]int, 4)
 
 	var i uint8 = 3
@@ -58,7 +58,7 @@ func (node *PASHANode) GetPredecessors() []int {
 	return preds
 }
 
-func (node *PASHANode) IsAPredecessor(nt int) bool {
+func (node *SortedNode) IsAPredecessor(nt int) bool {
 	bit := (node.neighbors >> uint8(3 + nt)) & 0x01
 
 	if bit == 1 {
@@ -68,7 +68,7 @@ func (node *PASHANode) IsAPredecessor(nt int) bool {
 	}
 }
 
-func (node *PASHANode) AddPredecessor(nt int) {
+func (node *SortedNode) AddPredecessor(nt int) {
 	var bit uint8
 
 	if nt == 0 {
@@ -84,7 +84,7 @@ func (node *PASHANode) AddPredecessor(nt int) {
 	node.neighbors = node.neighbors | bit
 }
 
-func (node *PASHANode) GetSuccessors() []int {
+func (node *SortedNode) GetSuccessors() []int {
 	succs := make([]int, 4)
 
 	var i uint8 = 0
@@ -100,7 +100,7 @@ func (node *PASHANode) GetSuccessors() []int {
 	return succs
 }
 
-func (node *PASHANode) IsASuccessor(nt int) bool {
+func (node *SortedNode) IsASuccessor(nt int) bool {
 	bit := (node.neighbors >> uint8(nt)) & 0x01
 
 	if bit == 1 {
@@ -110,7 +110,7 @@ func (node *PASHANode) IsASuccessor(nt int) bool {
 	}
 }
 
-func (node *PASHANode) AddSuccessor(nt int) {
+func (node *SortedNode) AddSuccessor(nt int) {
 	var bit uint8
 
 	if nt == 0 {
@@ -126,7 +126,7 @@ func (node *PASHANode) AddSuccessor(nt int) {
 	node.neighbors = node.neighbors | bit
 }
 
-func (node *PASHANode) Merge(other_entry debruijn.GraphNode) {
+func (node *SortedNode) Merge(other_entry debruijn.GraphNode) {
 	kmer_a := node.GetKmer()
 	kmer_b := other_entry.GetKmer()
 
